@@ -1,3 +1,3 @@
 # Network Lab
 
-This repo contains all the learning materials and homework implementation for the CMU10-714: Deep Learning System course.
+This repo contains some of the learning materials and homework implementation for the Computer Networking: a Top Down Approach (Pearson). The 9th edition made by @FisherSkyi
