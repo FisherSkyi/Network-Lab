@@ -10,21 +10,46 @@ s.bind(('', 50154))
 s.listen(10)
 # get the socket name (address, port) tuple
 # the port is assigned by the OS if not specified in socket()
-print(f"Server listening on {s.getsockname()}")
+print(f"Server listening on {s.getsockname()}") # ('0.0.0.0', 50154)
 
 # Accept incoming connections
 print("Waiting for connections...")
 conn, addr = s.accept()
 print(f"Connected by {addr}")
 
-# You can now communicate with the client
-# For example, receive data:
-data = conn.recv(1024) # receive up to 1024 bytes
-print(f"Received: {data.decode()}")
+# Set timeout to detect stalled connections
+conn.settimeout(30.0)  # 30 second timeout
 
-# Send a response:
-conn.send(b"Hello from server!")
+# Handle persistent connection with reliable disconnection detection
+try:
+    while True:
+        # Receive data from client
+        data = conn.recv(1024)
+        
+        # Check for disconnection: empty bytes means connection closed
+        if len(data) == 0:
+            print("Client disconnected (connection closed)")
+            break
+            
+        print(f"Received: {data.decode()}")
+        
+        # Send response back to client
+        response = b"HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello client!"
+        conn.send(response)
+        print("Response sent")
+        
+        # For HTTP 1.1 persistent connections, keep the connection open
+        # and continue listening for more requests
+        
+except socket.timeout:
+    print("Connection timed out - closing")
+except ConnectionResetError:
+    print("Client forcefully closed connection")
+except Exception as e:
+    print(f"Connection error: {e}")
+finally:
+    # Always close the connection when done
+    conn.close()
+    print("Connection closed")
 
-# Close the connection
-conn.close()
 s.close()
